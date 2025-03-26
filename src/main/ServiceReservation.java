@@ -1,14 +1,14 @@
 package main;
 
-import main.documents.IDocument;
+import main.documents.Document;
 import main.exceptions.ReservationException;
 
 import java.io.*;
 import java.net.Socket;
 
 public class ServiceReservation implements Runnable {
-    private Socket client;
-    private Mediatheque Mediatheque;
+    private final Socket client;
+    private final Mediatheque Mediatheque;
 
     public ServiceReservation(Socket client, Mediatheque Mediatheque) {
         this.client = client;
@@ -27,7 +27,7 @@ public class ServiceReservation implements Runnable {
             int numDoc = Integer.parseInt(in.readLine());
 
             Abonne ab = Mediatheque.getAbonne(numAbonne);
-            IDocument doc = Mediatheque.getDocument(numDoc);
+            Document doc = Mediatheque.getDocument(numDoc);
             String reponse;
             if (ab == null) {
                 reponse = "Abonne non trouve.";

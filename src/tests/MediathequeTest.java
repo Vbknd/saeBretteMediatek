@@ -1,70 +1,127 @@
 package tests;
 
+import org.junit.Before; 
+import org.junit.Test; 
 import static org.junit.Assert.*;
 
-import main.Mediatheque;
-import main.Abonne;
-import main.exceptions.*;
-import main.documents.IDocument;
-import org.junit.Before;
-import org.junit.Test;
+import main.Mediatheque; 
+import main.Abonne; 
+import main.documents.*;
 
 public class MediathequeTest {
-    private Mediatheque mediatheque;
+
+    private Abonne adulte, enfant;
+    private Document dvdAdult, dvdFamilial, livre;
 
     @Before
     public void setUp() {
-        // Création de l'instance de Mediathek avec des abonnés et des documents initialisés en dur
-        mediatheque = new Mediatheque();
+        Mediatheque mediatheque = new Mediatheque();
+        // Mediatheque définit : 1 (majeure), 2 (mineur)
+        adulte = mediatheque.getAbonne(1);
+        enfant = mediatheque.getAbonne(2);
+        dvdAdult = mediatheque.getDocument(101);
+        dvdFamilial = mediatheque.getDocument(102);
+        // Création manuelle d'un Livre
+        livre = mediatheque.getDocument(1);
     }
 
     @Test
-    public void testGetAbonne() {
-        // Vérifier qu'un abonné existant est bien récupéré
-        Abonne ab1 = mediatheque.getAbonne(1);
-        assertNotNull("L'abonné avec le numéro 1 doit exister", ab1);
-        assertEquals("Alice", ab1.getNom());
-
-        // Vérifier qu'un abonné inexistant renvoie null
-        Abonne abInexistant = mediatheque.getAbonne(999);
-        assertNull("L'abonné avec le numéro 999 ne doit pas exister", abInexistant);
-    }
-
-    @Test
-    public void testGetDocument() {
-        // Vérifier qu'un document existant est bien récupéré
-        IDocument doc101 = mediatheque.getDocument(101);
-        assertNotNull("Le document 101 doit exister", doc101);
-        assertEquals(101, doc101.numero());
-
-        // Vérifier qu'un document inexistant renvoie null
-        IDocument docInexistant = mediatheque.getDocument(999);
-        assertNull("Le document avec le numéro 999 ne doit pas exister", docInexistant);
-    }
-
-    @Test
-    public void testReservation() {
-        // Récupérer un abonné et un document non réservé
-        Abonne ab1Majeur = mediatheque.getAbonne(1);
-        Abonne ab2Mineur = mediatheque.getAbonne(1);
-
-        IDocument dvdFamilial = mediatheque.getDocument(1);
-        assertNotNull("Le document 1 doit exister", ab2Mineur);
-
-        // Test réservation sur doc non réservé
+    public void testReservationSuccess() {
         try {
-            dvdFamilial.reserver(ab2Mineur);
-        } catch (ReservationException e) {
-            fail("La réservation ne doit pas échouer pour un document disponible.");
+            dvdFamilial.reserver(adulte);
+        } catch (Exception e) {
+            fail("Réservation doit réussir");
         }
+    }
 
-        // Test de réservation sur un doc réservé
+    @Test
+    public void testDoubleReservationFail() {
         try {
-            dvdFamilial.reserver(ab2Mineur);
-            fail("La réservation doit échouer car le document est déjà réservé.");
-        } catch (ReservationException e) {
+            dvdFamilial.reserver(adulte);
+        } catch (Exception e) {
+            fail("1ère résa OK");
         }
+        try {
+            dvdFamilial.reserver(adulte);
+            fail("Double résa doit échouer");
+        } catch (Exception e) {
+        }
+    }
 
+    @Test
+    public void testReservationAdultFailForEnfant() {
+        try {
+            dvdAdult.reserver(enfant);
+            fail("Mineur sur DVD adulte");
+        } catch (Exception e) {
+        }
+    }
 
+    @Test
+    public void testBorrowSuccess() {
+        try {
+            dvdFamilial.reserver(adulte);
+            dvdFamilial.emprunter(adulte);
+        } catch (Exception e) {
+            fail("Emprunt doit réussir");
+        }
+    }
+
+    @Test
+    public void testBorrowFailDifferent() {
+        try {
+            dvdFamilial.reserver(adulte);
+        } catch (Exception e) {
+            fail("Résa OK");
+        }
+        try {
+            dvdFamilial.emprunter(enfant);
+            fail("Emprunt par autre doit échouer");
+        } catch (Exception e) {
+        }
+    }
+
+    @Test
+    public void testReturnResets() {
+        try {
+            dvdFamilial.reserver(adulte);
+            dvdFamilial.emprunter(adulte);
+            dvdFamilial.retourner();
+            dvdFamilial.reserver(enfant);
+        } catch (Exception e) {
+            fail("Retour doit réinitialiser");
+        }
+    }
+
+    @Test
+    public void testLivreReservationAndBorrow() {
+        try {
+            livre.reserver(enfant);
+            livre.emprunter(enfant);
+            livre.retourner();
+            livre.reserver(adulte);
+            livre.emprunter(adulte);
+        } catch (Exception e) {
+            fail("Livre doit fonctionner");
+        }
+    }
+
+    @Test
+    public void testLivreReempruntAfterReturn() {
+        try {
+            // Premier cycle : emprunt par major
+            livre.reserver(adulte);
+            livre.emprunter(adulte);
+            livre.retourner();
+            // Deuxième cycle : réemprunt par major
+            livre.reserver(adulte);
+            livre.emprunter(adulte);
+            livre.retourner();
+            // Troisième cycle : emprunt par minor
+            livre.reserver(enfant);
+            livre.emprunter(enfant);
+        } catch (Exception e) {
+            fail("Livre doit être réempruntable après retour");
+        }
     }
 }

@@ -1,14 +1,14 @@
 package main;
 
-import main.documents.IDocument;
+import main.documents.Document;
 import main.exceptions.EmpruntException;
 
 import java.io.*;
 import java.net.Socket;
 
 public class ServiceEmprunt implements Runnable {
-    private Socket client;
-    private Mediatheque mediatheque;
+    private final Socket client;
+    private final Mediatheque mediatheque;
 
     public ServiceEmprunt(Socket client, Mediatheque Mediatheque) {
         this.client = client;
@@ -27,7 +27,7 @@ public class ServiceEmprunt implements Runnable {
             int numDoc = Integer.parseInt(in.readLine());
 
             Abonne ab = mediatheque.getAbonne(numAbonne);
-            IDocument doc = mediatheque.getDocument(numDoc);
+            Document doc = mediatheque.getDocument(numDoc);
             String reponse;
             if (ab == null) {
                 reponse = "Abonne non trouve.";

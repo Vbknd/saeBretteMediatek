@@ -1,13 +1,13 @@
 package main;
 
-import main.documents.IDocument;
+import main.documents.Document;
 
 import java.io.*;
 import java.net.Socket;
 
 public class ServiceRetour implements Runnable {
-    private Socket client;
-    private Mediatheque mediatheque;
+    private final Socket client;
+    private final Mediatheque mediatheque;
 
     public ServiceRetour(Socket client, Mediatheque mediatheque) {
         this.client = client;
@@ -23,7 +23,7 @@ public class ServiceRetour implements Runnable {
             out.println("Entrez le numero du document à retourner :");
             int numDoc = Integer.parseInt(in.readLine());
 
-            IDocument doc = mediatheque.getDocument(numDoc);
+            Document doc = mediatheque.getDocument(numDoc);
             String reponse;
             if (doc == null) {
                 reponse = "Document non trouve.";
